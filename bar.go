@@ -16,33 +16,41 @@ type Bar struct {
 	Data  []float64
 	Label func(i int) string
 	Color func(i int) color.NRGBA
+	Theme *material.Theme
 }
 
-func (s Bar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	n := len(s.Data)
+func (b Bar) Layout(gtx layout.Context) layout.Dimensions {
+	if b.Label == nil {
+		b.Label = func(i int) string {
+			return fmt.Sprint(i)
+		}
+	}
+	if b.Color == nil {
+		b.Color = func(i int) color.NRGBA {
+			return hslToRGB(float64(i)/float64(len(b.Data)), .8, .8)
+		}
+	}
+	if b.Theme == nil {
+		b.Theme = defaultTheme()
+	}
+
+	b.renderBars(gtx)
+
+	return layout.Dimensions{Size: gtx.Constraints.Max}
+}
+
+func (b Bar) renderBars(gtx layout.Context) {
+	n := len(b.Data)
 	boxSize := gtx.Constraints.Min.X / n
 
-	_, dataMax := minMax(s.Data)
+	_, dataMax := minMax(b.Data)
 	dmx := dataMax
 	// dmi := dataMin
 	dataRange := dmx
 
 	maxBoxHeight := (dmx / dataRange) * float64(gtx.Constraints.Max.Y)
 
-	labelFunc := s.Label
-	if labelFunc == nil {
-		labelFunc = func(i int) string {
-			return fmt.Sprint(i)
-		}
-	}
-	colorFunc := s.Color
-	if colorFunc == nil {
-		colorFunc = func(i int) color.NRGBA {
-			return hslToRGB(float64(i)/float64(len(s.Data)), .8, .8)
-		}
-	}
-
-	for i, n := range s.Data {
+	for i, n := range b.Data {
 		gtx := gtx
 		boxHeight := (n / dataRange) * float64(gtx.Constraints.Max.Y)
 		gtx.Constraints = layout.Exact(image.Pt(boxSize, int(boxHeight)))
@@ -57,14 +65,12 @@ func (s Bar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		if i == 0 {
 			bar.Left = unit.Value{V: 0, U: unit.UnitDp}
 		}
-		if i == len(s.Data)-1 {
+		if i == len(b.Data)-1 {
 			bar.Right = unit.Value{V: 0, U: unit.UnitDp}
 		}
 
-		bar.Layout(gtx, fillWithLabel(th, labelFunc(i), colorFunc(i)))
+		bar.Layout(gtx, fillWithLabel(b.Theme, b.Label(i), b.Color(i)))
 
 		trans.Pop()
 	}
-
-	return layout.Dimensions{Size: gtx.Constraints.Max}
 }

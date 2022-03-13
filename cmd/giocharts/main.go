@@ -7,11 +7,9 @@ import (
 	"time"
 
 	"gioui.org/app"
-	"gioui.org/font/gofont"
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/widget/material"
 
 	"github.com/crhntr/giocharts"
 )
@@ -29,7 +27,6 @@ func main() {
 }
 
 func run(w *app.Window) error {
-	th := material.NewTheme(gofont.Collection())
 	var ops op.Ops
 
 	c := make(chan []float64)
@@ -54,7 +51,7 @@ func run(w *app.Window) error {
 				gtx := layout.NewContext(&ops, e)
 				giocharts.Bar{
 					Data: data,
-				}.Layout(gtx, th)
+				}.Layout(gtx)
 				e.Frame(gtx.Ops)
 			}
 		case array := <-c:

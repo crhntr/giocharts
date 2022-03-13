@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 
+	"gioui.org/font/gofont"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
@@ -12,6 +13,10 @@ import (
 	"gioui.org/widget/material"
 	"golang.org/x/exp/constraints"
 )
+
+func defaultTheme() *material.Theme {
+	return material.NewTheme(gofont.Collection())
+}
 
 func fillWithLabel(th *material.Theme, text string, backgroundColor color.NRGBA) func(gtx layout.Context) layout.Dimensions {
 	return func(gtx layout.Context) layout.Dimensions {
