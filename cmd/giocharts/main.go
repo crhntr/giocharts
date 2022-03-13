@@ -35,7 +35,7 @@ func run(w *app.Window) error {
 	c := make(chan []float64)
 	go func() {
 		for {
-			array := make([]float64, 30)
+			array := make([]float64, 10)
 			for i := range array {
 				array[i] = rand.Float64()
 			}

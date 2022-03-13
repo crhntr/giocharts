@@ -52,11 +52,20 @@ func (s Bar) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
 		gtx.Constraints = layout.Exact(image.Pt(boxSize, int(boxHeight)))
 		trans := op.Offset(f32.Pt(float32(boxSize*i), float32(maxBoxHeight-boxHeight))).Push(gtx.Ops)
 
-		layout.Inset{
+		bar := layout.Inset{
 			Top:   unit.Value{V: 5, U: unit.UnitDp},
 			Left:  unit.Value{V: 5, U: unit.UnitDp},
 			Right: unit.Value{V: 5, U: unit.UnitDp},
-		}.Layout(gtx, fillWithLabel(th, labelFunc(i), colorFunc(i)))
+		}
+
+		if i == 0 {
+			bar.Left = unit.Value{V: 0, U: unit.UnitDp}
+		}
+		if i == len(s.Data)-1 {
+			bar.Right = unit.Value{V: 0, U: unit.UnitDp}
+		}
+
+		bar.Layout(gtx, fillWithLabel(th, labelFunc(i), colorFunc(i)))
 
 		trans.Pop()
 	}
