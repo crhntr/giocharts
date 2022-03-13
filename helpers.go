@@ -14,6 +14,8 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+var black = hslToRGB(0, 0, 0)
+
 func defaultTheme() *material.Theme {
 	return material.NewTheme(gofont.Collection())
 }
