@@ -128,6 +128,10 @@ func (b Bar) renderBars(maxN float64) func(gtx layout.Context) layout.Dimensions
 		n := len(b.Data)
 		boxWidth := gtx.Constraints.Max.X / n
 
+		spaceBetween := unit.Dp(b.SpaceBetween / 2)
+		if gtx.Constraints.Max.X < len(b.Data)*2*int(spaceBetween.V)*5 {
+			spaceBetween = unit.Dp(0)
+		}
 		for i, n := range b.Data {
 			gtx := gtx
 			boxHeight := (n / maxN) * float64(gtx.Constraints.Max.Y)
@@ -137,8 +141,8 @@ func (b Bar) renderBars(maxN float64) func(gtx layout.Context) layout.Dimensions
 			trans := op.Offset(f32.Pt(offsetLeft, offsetTop)).Push(gtx.Ops)
 
 			bar := layout.Inset{
-				Left:  unit.Dp(b.SpaceBetween / 2),
-				Right: unit.Dp(b.SpaceBetween / 2),
+				Left:  spaceBetween,
+				Right: spaceBetween,
 			}
 
 			bar.Layout(gtx, fillWithLabel(b.Theme, b.BoxLabel(i), b.BarColor(i)))
