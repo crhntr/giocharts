@@ -10,6 +10,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 )
@@ -25,7 +26,7 @@ type Bar struct {
 func (b Bar) Layout(gtx layout.Context) layout.Dimensions {
 	if b.BoxLabel == nil {
 		b.BoxLabel = func(i int) string {
-			if len(b.Data)*200 > gtx.Constraints.Max.X {
+			if len(b.Data)*130 > gtx.Constraints.Max.X {
 				return ""
 			}
 			return fmt.Sprintf("%2.2f", b.Data[i])
@@ -43,42 +44,78 @@ func (b Bar) Layout(gtx layout.Context) layout.Dimensions {
 		b.SpaceBetween = 10
 	}
 
-	dMinValue, dMaxValue := minMax(b.Data)
-
-	return b.renderYLegend(gtx, b.Theme, dMinValue, dMaxValue)
+	return b.renderYLegend(gtx, b.Theme)
 }
 
-func (b Bar) renderYLegend(gtx layout.Context, th *material.Theme, minValue, maxValue float64) layout.Dimensions {
-	offset := unit.Dp(50)
-	prefixWidth := gtx.Px(offset)
-	// lineWidth := gtx.Px(unit.Dp(5))
+func (b Bar) renderYLegend(gtx layout.Context, th *material.Theme) layout.Dimensions {
+	_, maxValue := minMax(b.Data)
 
-	maxX := gtx.Constraints.Max.X
-	gtx.Constraints.Max.X = prefixWidth
-	writeYLegendLine(gtx)
-	gtx.Constraints.Max.X = maxX
+	lineWidth := 10
+	leftSize := 100
+	rightSize := gtx.Constraints.Max.X - leftSize
 
-	//labelFunc := func(v float64) layout.Widget {
-	//	l := material.Label(th, th.TextSize, fmt.Sprintf("%.2f", maxValue))
-	//	l.Alignment = text.End
-	//	return l.Layout
-	//}
+	var barsDims layout.Dimensions
+	{
+		gtx := gtx
+		gtx.Constraints = layout.Exact(image.Pt(rightSize, gtx.Constraints.Max.Y))
+		trans := op.Offset(f32.Pt(float32(leftSize), 0)).Push(gtx.Ops)
+		barsDims = layout.Inset{
+			Top:    th.TextSize,
+			Bottom: th.TextSize,
+		}.Layout(gtx, b.renderBars(maxValue))
+		trans.Pop()
+	}
+	{
+		gtx := gtx
+		gtx.Constraints = layout.Exact(image.Pt(leftSize, gtx.Constraints.Max.Y))
 
-	//correction := (maxValue - minValue) / maxValue * float64(gtx.Constraints.Max.Y)
+		writeYLegendLine(gtx, lineWidth)
+		gtx.Constraints.Max.X -= lineWidth + 2
 
-	_ = layout.Inset{
-		Top:    th.TextSize,
-		Bottom: th.TextSize,
-		Left:   offset,
-	}.Layout(gtx, b.renderBars(maxValue))
+		labelFunc := func(v float64) layout.Widget {
+			l := material.Label(th, th.TextSize, fmt.Sprintf("%.2f", v))
+			l.Alignment = text.End
+			l.MaxLines = 1
+			return l.Layout
+		}
+
+		maxBarHeight := barsDims.Size.Y - 2*barsDims.Baseline
+
+		actualHeight := gtx.Constraints.Min.Y - 48
+		lineHeight := int(th.TextSize.V * 1.5)
+
+		if actualHeight > lineHeight*2 {
+			layout.Inset{}.Layout(gtx, labelFunc(maxValue))
+		}
+		if actualHeight > lineHeight*10 {
+			layout.Inset{
+				Top: unit.Px(float32(maxBarHeight / 4)),
+			}.Layout(gtx, labelFunc(maxValue/4*3))
+		}
+		if actualHeight > lineHeight*6 {
+			layout.Inset{
+				Top: unit.Px(float32(maxBarHeight / 2)),
+			}.Layout(gtx, labelFunc(maxValue/2))
+		}
+		if actualHeight > lineHeight*10 {
+			layout.Inset{
+				Top: unit.Px(float32(maxBarHeight / 4 * 3)),
+			}.Layout(gtx, labelFunc(maxValue/4))
+		}
+		if actualHeight > lineHeight*2 {
+			layout.Inset{
+				Top: unit.Px(float32(maxBarHeight)),
+			}.Layout(gtx, labelFunc(0))
+		}
+	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}
 }
 
-func writeYLegendLine(gtx layout.Context) layout.Dimensions {
+func writeYLegendLine(gtx layout.Context, width int) layout.Dimensions {
 	size := image.Pt(2, gtx.Constraints.Max.Y)
 	defer clip.Rect{
-		Min: image.Pt(gtx.Constraints.Max.X-10, 0),
+		Min: image.Pt(gtx.Constraints.Max.X-width, 0),
 		Max: image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y),
 	}.Push(gtx.Ops).Pop()
 	paint.ColorOp{Color: black}.Add(gtx.Ops)
@@ -97,7 +134,6 @@ func (b Bar) renderBars(maxN float64) func(gtx layout.Context) layout.Dimensions
 			offsetTop := float32(gtx.Constraints.Max.Y) - float32(boxHeight)
 			offsetLeft := float32(boxWidth * i)
 			gtx.Constraints = layout.Exact(image.Pt(boxWidth, int(boxHeight)))
-			fmt.Println(i, boxHeight, offsetTop, offsetLeft)
 			trans := op.Offset(f32.Pt(offsetLeft, offsetTop)).Push(gtx.Ops)
 
 			bar := layout.Inset{

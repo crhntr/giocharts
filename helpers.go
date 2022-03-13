@@ -9,6 +9,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"golang.org/x/exp/constraints"
@@ -20,15 +21,12 @@ func defaultTheme() *material.Theme {
 	return material.NewTheme(gofont.Collection())
 }
 
-func fillWithLabel(th *material.Theme, text string, backgroundColor color.NRGBA) func(gtx layout.Context) layout.Dimensions {
+func fillWithLabel(th *material.Theme, content string, backgroundColor color.NRGBA) func(gtx layout.Context) layout.Dimensions {
 	return func(gtx layout.Context) layout.Dimensions {
 		colorBox(gtx, gtx.Constraints.Max, backgroundColor)
-		return layout.Inset{
-			Top:    unit.Value{V: 20, U: unit.UnitDp},
-			Left:   unit.Value{V: 20, U: unit.UnitDp},
-			Right:  unit.Value{V: 20, U: unit.UnitDp},
-			Bottom: unit.Value{V: 20, U: unit.UnitDp},
-		}.Layout(gtx, material.Body1(th, text).Layout)
+		body := material.Body1(th, content)
+		body.Alignment = text.Middle
+		return layout.UniformInset(unit.Px(5)).Layout(gtx, body.Layout)
 	}
 }
 
