@@ -26,6 +26,7 @@ func fillWithLabel(th *material.Theme, content string, backgroundColor color.NRG
 		colorBox(gtx, gtx.Constraints.Max, backgroundColor)
 		body := material.Body1(th, content)
 		body.Alignment = text.Middle
+		body.MaxLines = 1
 		return layout.UniformInset(unit.Px(5)).Layout(gtx, body.Layout)
 	}
 }

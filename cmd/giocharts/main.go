@@ -34,7 +34,7 @@ func run(w *app.Window) error {
 		for {
 			array := make([]float64, 10)
 			for i := range array {
-				array[i] = rand.Float64()
+				array[i] = rand.Float64() * 100
 			}
 			c <- array
 			time.Sleep(time.Second * 5)

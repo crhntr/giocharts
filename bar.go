@@ -26,9 +26,6 @@ type Bar struct {
 func (b Bar) Layout(gtx layout.Context) layout.Dimensions {
 	if b.BoxLabel == nil {
 		b.BoxLabel = func(i int) string {
-			if len(b.Data)*130 > gtx.Constraints.Max.X {
-				return ""
-			}
 			return fmt.Sprintf("%2.2f", b.Data[i])
 		}
 	}
